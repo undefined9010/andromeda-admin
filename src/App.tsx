@@ -1,11 +1,10 @@
-import "./App.css";
-import ApprovalList from "./components/ApprovalsList/ApprovalsList.tsx";
 import ClaimRequestsList from "./components/ClaimRequests/ClaimRequests.tsx";
+import ApprovalTable from "@/components/Approval/ApprovalTable.tsx";
 
 function App() {
   return (
     <>
-      <ApprovalList />
+      <ApprovalTable />
       <ClaimRequestsList />
     </>
   );

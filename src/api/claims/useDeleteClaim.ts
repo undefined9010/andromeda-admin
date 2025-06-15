@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const deleteClaimRequest = async (requestId: number): Promise<void> => {
   const response = await fetch(
-    `${import.meta.env.VITE_BE_URL}/api/withdrawals/${requestId}`,
+    `${import.meta.env.VITE_BE_URL}/withdrawals/${requestId}`,
     {
       method: "DELETE",
     },

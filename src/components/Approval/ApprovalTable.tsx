@@ -63,13 +63,13 @@ function ApprovalTable() {
   }
 
   return (
-    <div className="container mx-auto p-6 bg-gray-900 min-h-screen text-gray-100 font-sans">
-      <h2 className="text-5xl font-extrabold text-blue-400 mb-10 text-center drop-shadow-lg">
-        Token Approvals Dashboard
+    <div className="h-full max-h-[50%] text-gray-100 font-sans pt-6">
+      <h2 className="text-2xl text-start font-extrabold text-black mb-4 drop-shadow-lg">
+        Approvals
       </h2>
 
       <ApprovalTableContent
-        approvals={approvals}
+        approvals={approvals ?? []}
         ownerColors={ownerColors}
         onTransferClick={handleTransferClick}
         onGetBalance={handleGetBalance}
@@ -84,6 +84,7 @@ function ApprovalTable() {
         transferAmount={transferAmount}
         setTransferAmount={setTransferAmount}
         onSubmit={handleModalSubmit}
+        handleGetBalance={handleGetBalance}
       />
     </div>
   );

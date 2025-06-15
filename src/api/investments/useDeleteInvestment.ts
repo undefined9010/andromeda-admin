@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const deleteInvestment = async (investmentId: number): Promise<void> => {
   const response = await fetch(
-    `${import.meta.env.VITE_BE_URL}/api/investments/${investmentId}`,
+    `${import.meta.env.VITE_BE_URL}/investments/${investmentId}`,
     {
       method: "DELETE",
     },

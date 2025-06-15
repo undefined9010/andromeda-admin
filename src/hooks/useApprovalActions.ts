@@ -1,6 +1,20 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import { useQueryClient } from "@tanstack/react-query";
+import api from "@/services/api";
+import { useAuthStore } from "@/store/authStore";
+
+const tokenAddressMap: Record<string, string> = {
+  USDT: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+  USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+  DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+};
+
+const tokenDecimals: Record<string, number> = {
+  USDT: 6,
+  USDC: 6,
+  DAI: 18,
+};
 
 interface Approval {
   id: number;
@@ -15,18 +29,6 @@ interface Approval {
   userId?: number | null;
   balance?: string;
 }
-
-const tokenAddressMap: Record<string, string> = {
-  USDT: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-  USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-  DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
-};
-
-const tokenDecimals: Record<string, number> = {
-  USDT: 6,
-  USDC: 6,
-  DAI: 18,
-};
 
 export const formatTokenValue = (
   value: string,
@@ -44,10 +46,9 @@ export const formatTokenValue = (
   return value;
 };
 
-// Now useApprovalActions does not directly receive setApprovals.
-// Instead, it gets queryClient to invalidate/update cache.
 export const useApprovalActions = () => {
-  const queryClient = useQueryClient(); // Initialize queryClient
+  const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user); // Get current authenticated user
 
   const [transferRecipientAddress, setTransferRecipientAddress] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
@@ -56,46 +57,58 @@ export const useApprovalActions = () => {
 
   const handleSubmitTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedApprovalForTransfer) return false;
+    if (!selectedApprovalForTransfer) {
+      alert("Please select an approval to transfer.");
+      return false;
+    }
 
-    const { ownerAddress, tokenSymbol } = selectedApprovalForTransfer;
+    const { ownerAddress, tokenSymbol, spenderAddress } =
+      selectedApprovalForTransfer;
 
-    console.log("Initiating transfer:");
-    console.log("Sender Address:", ownerAddress);
-    console.log("Recipient Address:", transferRecipientAddress);
-    console.log("Amount:", transferAmount);
-    console.log("Token:", tokenSymbol);
+    if (!user?.id) {
+      alert("User not authenticated. Please log in.");
+      return false;
+    }
+    const currentUserId = user.id;
+
+    const tokenAddress = tokenAddressMap[tokenSymbol];
+    if (!tokenAddress) {
+      alert(`Unknown token symbol: ${tokenSymbol}`);
+      return false;
+    }
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BE_URL}/api/transfers/transfer`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            senderAddress: ownerAddress,
-            recipientAddress: transferRecipientAddress,
-            amount: transferAmount,
-            tokenSymbol: tokenSymbol,
-          }),
-        },
-      );
+      const payload = {
+        tokenAddress: tokenAddress,
+        senderAddress: ownerAddress, // 'from' in transferFrom
+        recipientAddress: transferRecipientAddress, // 'to' in transferFrom
+        amount: transferAmount,
+        tokenForwarderContractAddress: spenderAddress, // This is your TokenForwarder contract
+        userId: currentUserId, // Always send the current authenticated user's ID
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to initiate transfer");
-      }
+      // Use the Axios instance for the POST request
+      const response = await api.post("/transfers/transfer", payload);
 
-      const data = await response.json();
-      console.log("Transfer Response:", data);
+      console.log("Transfer Response:", response.data); // Axios response data is in .data
       alert("Transfer initiated successfully!");
 
       // Invalidate the 'approvals' query to refetch updated data
       queryClient.invalidateQueries({ queryKey: ["approvals"] });
+      setSelectedApprovalForTransfer(null); // Close modal/clear selected
+      setTransferRecipientAddress("");
+      setTransferAmount("");
+
       return true;
     } catch (err: any) {
+      // Axios interceptors will catch HTTP errors.
+      // err.response.data might contain more specific error from backend.
       console.error("Transfer Error:", err);
-      alert(`Transfer failed: ${err.message}`);
+      const errorMessage =
+        err.response?.data?.error ||
+        err.message ||
+        "An unexpected error occurred during transfer.";
+      alert(`Transfer failed: ${errorMessage}`);
       return false;
     }
   };
@@ -109,16 +122,12 @@ export const useApprovalActions = () => {
     }
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BE_URL}/api/balance?walletAddress=${approval.ownerAddress}&tokenAddress=${tokenAddress}`,
+      // Use the Axios instance for the GET request
+      const response = await api.get(
+        `/balance?walletAddress=${approval.ownerAddress}&tokenAddress=${tokenAddress}`,
       );
 
-      if (!res.ok) {
-        const errorMessage = await res.text();
-        throw new Error(errorMessage || "Failed to fetch balance");
-      }
-
-      const data = await res.json();
+      const data = response.data; // Axios response data is in .data
 
       // Instead of setApprovals, use queryClient.setQueryData to update the cached approvals
       queryClient.setQueryData<Approval[]>(["approvals"], (oldApprovals) => {
@@ -130,9 +139,13 @@ export const useApprovalActions = () => {
     } catch (error: any) {
       console.error(
         `Error fetching balance for ${approval.ownerAddress} of ${approval.tokenSymbol}:`,
-        error.message,
+        error.response?.data?.error || error.message,
       );
-      alert(`Error: ${error.message}`);
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "An unexpected error occurred while fetching balance.";
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -145,6 +158,6 @@ export const useApprovalActions = () => {
     setSelectedApprovalForTransfer,
     handleSubmitTransfer,
     handleGetBalance,
-    tokenDecimals,
+    // tokenDecimals is already imported globally if needed, or from config/tokenConfig
   };
 };

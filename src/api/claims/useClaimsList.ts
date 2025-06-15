@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import api from "@/services/api";
+import { useAuthStore } from "@/store/authStore";
 
 export interface ClaimRequest {
   id?: number;
@@ -14,18 +16,17 @@ export interface ClaimRequest {
 }
 
 const fetchClaimsList = async (): Promise<ClaimRequest[]> => {
-  const response = await fetch(
-    `${import.meta.env.VITE_BE_URL}/api/withdrawals`,
-  );
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  return response.json();
+  const response = await api.get<ClaimRequest[]>("/withdrawals");
+  return response.data;
 };
 
 export const useClaimsList = () => {
-  return useQuery({
+  const token = useAuthStore((state) => state.token);
+
+  return useQuery<ClaimRequest[], Error>({
     queryKey: ["withdrawalRequests"],
     queryFn: fetchClaimsList,
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
   });
 };

@@ -6,7 +6,7 @@ import {
 } from "react-hook-form";
 import * as Form from "@radix-ui/react-form";
 
-import { ChangeEvent, ReactElement, ReactNode } from "react";
+import { ReactElement, ReactNode } from "react";
 import { CustomLoader } from "@/components/CustomLoader.tsx";
 
 export type InputFormProps<
@@ -44,7 +44,6 @@ export const Input = <
     label,
     balance,
     symbol,
-    maxValue,
     type,
     noIcon,
     isLoadingBalance,
@@ -56,16 +55,6 @@ export const Input = <
     control,
     rules: { required },
   });
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    let value = Number(event.target.value);
-
-    if (maxValue !== undefined && value > maxValue) {
-      value = maxValue;
-    }
-
-    field.onChange(value);
-  };
 
   return (
     <Form.Field name={name}>
@@ -85,8 +74,8 @@ export const Input = <
             placeholder={placeholder}
             autoComplete="off"
             type={type}
-            className={`${noIcon ? "px-6" : "none"} px-2 focus:outline-none w-full focus:ring-0 focus:border-transparent text-green-100`}
-            onChange={handleChange}
+            className={`text-black px-2 focus:outline-none w-full focus:ring-0 focus:border-transparent `}
+            onChange={field.onChange}
           />
           {balance &&
             !noIcon &&

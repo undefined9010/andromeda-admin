@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import {
   Dialog,
@@ -33,6 +33,7 @@ interface TransferModalProps {
   transferAmount: string;
   setTransferAmount: (amount: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  handleGetBalance: (item: Approval) => void;
 }
 
 const TransferModal: React.FC<TransferModalProps> = ({
@@ -43,6 +44,7 @@ const TransferModal: React.FC<TransferModalProps> = ({
   setTransferRecipientAddress,
   transferAmount,
   setTransferAmount,
+  handleGetBalance,
   onSubmit,
 }) => {
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -52,54 +54,60 @@ const TransferModal: React.FC<TransferModalProps> = ({
     onOpenChange(false);
   };
 
+  useEffect(() => {
+    handleGetBalance(selectedApproval as Approval);
+  }, [handleGetBalance, selectedApproval]);
+
   if (!selectedApproval) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gray-900 border border-gray-700 text-gray-100 rounded-xl p-6">
+      <DialogContent className="w-full min-w-[750px]  border rounded-xl p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-blue-400">
+          <DialogTitle className="text-2xl font-bold">
             Transfer Tokens
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription>
             Confirm the details below to initiate the token transfer.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 ">
           <p className="text-gray-300">
-            <span className="font-semibold text-gray-200">From:</span>{" "}
-            <span className="font-mono text-sm text-blue-300 break-words">
+            <span className="font-semibold text-black">From:</span>{" "}
+            <span className="font-mono text-sm break-words text-gray-500">
               {selectedApproval.ownerAddress}
             </span>
           </p>
+          <span className="font-semibold text-gray-900">Balance:</span>{" "}
+          <span className="font-semibold text-lg text-green-600">
+            {Number(selectedApproval.balance ?? 0).toFixed(2) ?? 0}
+          </span>{" "}
           <p className="text-gray-300">
-            <span className="font-semibold text-gray-200">Token:</span>{" "}
-            <span className="font-semibold text-lg text-green-300">
+            <span className="font-semibold text-gray-900">Token:</span>{" "}
+            <span className="font-semibold text-lg text-green-600">
               {selectedApproval.tokenSymbol}
             </span>{" "}
-            <span className="text-sm text-gray-400">
-              (Current Value:{" "}
+            <span className="text-sm text-gray-800">
               {formatTokenValue(
                 selectedApproval.value,
                 selectedApproval.tokenSymbol,
-              )}
-              )
+              )}{" "}
+              $
             </span>
           </p>
-
           <form onSubmit={handleFormSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="recipientAddress"
-                className="block text-gray-300 text-sm font-medium mb-2"
+                className="block text-gray-900 text-sm font-medium mb-2 "
               >
                 Recipient Address:
               </label>
               <input
                 type="text"
                 id="recipientAddress"
-                className="flex h-10 w-full rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200"
+                className="flex h-10 w-full rounded-md border border-gray-600 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200"
                 placeholder="0x..."
                 value={transferRecipientAddress}
                 onChange={(e) => setTransferRecipientAddress(e.target.value)}
@@ -109,14 +117,14 @@ const TransferModal: React.FC<TransferModalProps> = ({
             <div>
               <label
                 htmlFor="transferAmount"
-                className="block text-gray-300 text-sm font-medium mb-2"
+                className="block text-gray-900 text-sm font-medium mb-2"
               >
                 Amount:
               </label>
               <input
                 type="number"
                 id="transferAmount"
-                className="flex h-10 w-full rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200"
+                className="flex h-10 w-full rounded-md border border-gray-600  px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200"
                 placeholder="0.0"
                 value={transferAmount}
                 onChange={(e) => setTransferAmount(e.target.value)}

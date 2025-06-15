@@ -1,5 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { formatTokenValue } from "@/hooks/useApprovalActions.ts";
+import { useDeleteApproval } from "@/api/approvals/useDeleteApprove.ts";
+import { Button } from "@/components/ui/button.tsx";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog.tsx";
 
 interface Approval {
   id: number;
@@ -28,10 +39,25 @@ const ApprovalTableRow: React.FC<ApprovalTableRowProps> = ({
   onTransferClick,
   onGetBalance,
 }) => {
+  const { mutate: deleteApproval, isPending } = useDeleteApproval();
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [approvalToDelete, setApprovalToDelete] = useState<number | null>(null);
+
+  const handleDeleteClick = (id: number) => {
+    setApprovalToDelete(id);
+    setIsAlertOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (approvalToDelete) {
+      deleteApproval(approvalToDelete);
+    }
+  };
+
   return (
     <tr
       className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-      style={{ backgroundColor: ownerColor }} // Динамический цвет фона остается инлайн
+      style={{ backgroundColor: ownerColor }}
     >
       <td className="py-3 px-4 text-sm font-mono text-gray-800">
         {approval.id}
@@ -63,19 +89,51 @@ const ApprovalTableRow: React.FC<ApprovalTableRowProps> = ({
       <td className="py-3 px-4 text-sm">
         <div className="flex space-x-2">
           <button
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 rounded-lg cursor-pointer border border-black bg-gray-900 text-white font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
             onClick={() => onTransferClick(approval)}
           >
             Transfer
           </button>
           <button
-            className="px-4 py-2 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+            className="px-4 py-2 rounded-lg bg-teal-600 cursor-pointer text-white font-semibold hover:bg-teal-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
             onClick={() => onGetBalance(approval)}
           >
             Get balance
           </button>
+
+          <Button
+            className="cursor-pointer"
+            variant="destructive"
+            onClick={() => handleDeleteClick(approval.id)}
+          >
+            X
+          </Button>
         </div>
       </td>
+      <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deletion of contract</DialogTitle>
+            <DialogDescription>
+              Contract will be deleted permanently and will unassigned from the
+              user
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="pt-8">
+            <DialogClose>
+              <Button className="cursor-pointer">Cancel</Button>
+            </DialogClose>
+            <Button
+              className="cursor-pointer"
+              onClick={confirmDelete}
+              disabled={isPending}
+              variant="outline"
+            >
+              {isPending ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </tr>
   );
 };

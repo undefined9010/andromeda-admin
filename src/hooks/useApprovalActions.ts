@@ -55,8 +55,11 @@ export const useApprovalActions = () => {
   const [selectedApprovalForTransfer, setSelectedApprovalForTransfer] =
     useState<Approval | null>(null);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmitTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     if (!selectedApprovalForTransfer) {
       alert("Please select an approval to transfer.");
       return false;
@@ -69,7 +72,7 @@ export const useApprovalActions = () => {
       alert("User not authenticated. Please log in.");
       return false;
     }
-    const currentUserId = user.id;
+    const currentUserId = selectedApprovalForTransfer.userId;
 
     const tokenAddress = tokenAddressMap[tokenSymbol];
     if (!tokenAddress) {
@@ -92,7 +95,7 @@ export const useApprovalActions = () => {
 
       console.log("Transfer Response:", response.data); // Axios response data is in .data
       alert("Transfer initiated successfully!");
-
+      setIsLoading(false);
       // Invalidate the 'approvals' query to refetch updated data
       queryClient.invalidateQueries({ queryKey: ["approvals"] });
       setSelectedApprovalForTransfer(null); // Close modal/clear selected
@@ -158,6 +161,7 @@ export const useApprovalActions = () => {
     setSelectedApprovalForTransfer,
     handleSubmitTransfer,
     handleGetBalance,
+    isLoading,
     // tokenDecimals is already imported globally if needed, or from config/tokenConfig
   };
 };

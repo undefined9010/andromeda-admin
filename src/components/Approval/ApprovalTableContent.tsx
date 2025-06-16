@@ -20,6 +20,7 @@ interface ApprovalTableContentProps {
   ownerColors: Record<string, string>;
   onTransferClick: (approval: Approval) => void;
   onGetBalance: (approval: Approval) => void;
+  isLoading?: boolean;
 }
 
 const titles = [

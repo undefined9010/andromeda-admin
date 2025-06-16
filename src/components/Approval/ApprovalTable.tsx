@@ -17,6 +17,7 @@ function ApprovalTable() {
     setSelectedApprovalForTransfer,
     handleSubmitTransfer,
     handleGetBalance,
+    isLoading,
   } = useApprovalActions();
 
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -85,6 +86,7 @@ function ApprovalTable() {
         setTransferAmount={setTransferAmount}
         onSubmit={handleModalSubmit}
         handleGetBalance={handleGetBalance}
+        isLoading={isLoading}
       />
     </div>
   );

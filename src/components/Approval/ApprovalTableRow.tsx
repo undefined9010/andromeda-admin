@@ -31,6 +31,7 @@ interface ApprovalTableRowProps {
   ownerColor: string;
   onTransferClick: (approval: Approval) => void;
   onGetBalance: (approval: Approval) => void;
+  isLoading?: boolean;
 }
 
 const ApprovalTableRow: React.FC<ApprovalTableRowProps> = ({

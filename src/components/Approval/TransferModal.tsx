@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatTokenValue } from "@/hooks/useApprovalActions.ts";
+import { Button } from "@/components/ui/button.tsx";
 
 interface Approval {
   id: number;
@@ -34,6 +35,7 @@ interface TransferModalProps {
   setTransferAmount: (amount: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   handleGetBalance: (item: Approval) => void;
+  isLoading?: boolean;
 }
 
 const TransferModal: React.FC<TransferModalProps> = ({
@@ -46,6 +48,7 @@ const TransferModal: React.FC<TransferModalProps> = ({
   setTransferAmount,
   handleGetBalance,
   onSubmit,
+  isLoading,
 }) => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,16 +140,17 @@ const TransferModal: React.FC<TransferModalProps> = ({
             </div>
 
             <DialogFooter>
-              <button
+              <Button
                 type="submit"
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
+                disabled={isLoading}
+                className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
               >
                 Confirm Transfer
-              </button>
+              </Button>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-gray-600 text-white hover:bg-gray-700"
+                className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-gray-600 text-white hover:bg-gray-700"
               >
                 Cancel
               </button>
